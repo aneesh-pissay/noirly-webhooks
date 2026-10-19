@@ -22,7 +22,10 @@ describe("signing", () => {
     expect(verifySignature(secret, header, body, { now })).toBe(true);
     expect(verifySignature(secret, header, `${body} `, { now })).toBe(false);
     expect(verifySignature(generateSecret(), header, body, { now })).toBe(false);
-    expect(verifySignature(secret, header.replace(/v1=./, "v1=0"), body, { now })).toBe(false);
+    // Flip the first hex digit to a different one, so the signature always changes.
+    const tampered = header.replace(/v1=(.)/, (_all, digit: string) => `v1=${digit === "0" ? "1" : "0"}`);
+    expect(tampered).not.toBe(header);
+    expect(verifySignature(secret, tampered, body, { now })).toBe(false);
     expect(verifySignature(secret, null, body, { now })).toBe(false);
     expect(verifySignature(secret, "t=abc,v1=xyz", body, { now })).toBe(false);
   });
